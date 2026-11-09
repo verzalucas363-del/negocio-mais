@@ -1,0 +1,141 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NEGÓCIO+</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f4f6fa;color:#172033}
+header{background:#101b35;color:white;padding:25px 20px}
+header h1{margin:0;font-size:27px}
+header p{color:#b8c5df;margin-bottom:0}
+main{padding:20px;max-width:650px;margin:auto}
+.card{background:white;padding:20px;border-radius:14px;margin-bottom:16px;box-shadow:0 3px 12px #0000000a}
+h2{font-size:19px;margin-top:0}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.number{font-size:28px;font-weight:bold;color:#176bdb}
+button{background:#176bdb;color:white;border:0;padding:13px 17px;border-radius:9px;font-weight:bold;cursor:pointer}
+input,textarea{width:100%;padding:13px;border:1px solid #dce1ea;border-radius:9px;margin:7px 0 13px;font-size:15px}
+.client{padding:13px 0;border-bottom:1px solid #eee}
+.client a{color:#176bdb;text-decoration:none;font-weight:bold}
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+nav button{flex:1;min-width:90px}
+.hidden{display:none}
+.small{color:#718096;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+<h1>NEGÓCIO+</h1>
+<p>Seu negócio mais organizado.</p>
+</header>
+
+<main>
+<nav>
+<button onclick="show('inicio')">Início</button>
+<button onclick="show('clientes')">Clientes</button>
+<button onclick="show('mensagens')">Mensagens</button>
+</nav>
+
+<section id="inicio">
+<div class="card">
+<h2>Bem-vindo ao NEGÓCIO+</h2>
+<p>Organize seus clientes e facilite seu atendimento.</p>
+</div>
+<div class="stats">
+<div class="card">
+<p class="small">Total de clientes</p>
+<div class="number" id="total">0</div>
+</div>
+<div class="card">
+<p class="small">Seu painel</p>
+<div class="number">+</div>
+<p class="small">Organização</p>
+</div>
+</div>
+<div class="card">
+<h2>Comece a organizar</h2>
+<p>Cadastre seus clientes e tenha seus contatos em um só lugar.</p>
+<button onclick="show('clientes')">Cadastrar cliente</button>
+</div>
+</section>
+
+<section id="clientes" class="hidden">
+<div class="card">
+<h2>Novo cliente</h2>
+<input id="nome" placeholder="Nome do cliente">
+<input id="telefone" placeholder="WhatsApp com DDD">
+<button onclick="addClient()">Salvar cliente</button>
+</div>
+<div class="card">
+<h2>Lista de clientes</h2>
+<div id="lista"></div>
+</div>
+</section>
+
+<section id="mensagens" class="hidden">
+<div class="card">
+<h2>Mensagens rápidas</h2>
+<p class="small">Digite uma mensagem para abrir no WhatsApp.</p>
+<textarea id="mensagem" rows="4" placeholder="Digite sua mensagem..."></textarea>
+<input id="numero" placeholder="Número com DDD">
+<button onclick="sendWhatsApp()">Abrir WhatsApp</button>
+</div>
+</section>
+</main>
+
+<script>
+let clients=JSON.parse(localStorage.getItem('negociomais')||'[]');
+
+function show(id){
+['inicio','clientes','mensagens'].forEach(x=>{
+document.getElementById(x).classList.add('hidden');
+});
+document.getElementById(id).classList.remove('hidden');
+}
+
+function render(){
+document.getElementById('total').textContent=clients.length;
+document.getElementById('lista').innerHTML=clients.map((c,i)=>
+`<div class="client"><b>${escapeText(c.nome)}</b><br>
+<span class="small">${escapeText(c.telefone)}</span><br>
+<a href="https://wa.me/55${c.telefone.replace(/\D/g,'')}" target="_blank">Conversar no WhatsApp</a>
+<button onclick="removeClient(${i})" style="background:#dc3545;margin-left:8px;padding:8px">Excluir</button></div>`
+).join('')||'<p class="small">Nenhum cliente cadastrado.</p>';
+}
+
+function escapeText(s){
+return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function addClient(){
+let nome=document.getElementById('nome').value.trim();
+let telefone=document.getElementById('telefone').value.trim();
+if(!nome||!telefone){alert('Preencha os dois campos.');return;}
+clients.push({nome,telefone});
+localStorage.setItem('negociomais',JSON.stringify(clients));
+document.getElementById('nome').value='';
+document.getElementById('telefone').value='';
+render();
+alert('Cliente cadastrado!');
+}
+
+function removeClient(i){
+clients.splice(i,1);
+localStorage.setItem('negociomais',JSON.stringify(clients));
+render();
+}
+
+function sendWhatsApp(){
+let numero=document.getElementById('numero').value.replace(/\D/g,'');
+let msg=document.getElementById('mensagem').value;
+if(!numero||!msg){alert('Preencha o número e a mensagem.');return;}
+window.open('https://wa.me/55'+numero+'?text='+encodeURIComponent(msg),'_blank');
+}
+
+render();
+</script>
+</body>
+</html>
